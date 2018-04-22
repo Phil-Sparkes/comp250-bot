@@ -8,6 +8,7 @@ import ai.abstraction.AbstractAction;
 import ai.abstraction.AbstractionLayerAI;
 import ai.abstraction.Harvest;
 import ai.abstraction.pathfinding.GreedyPathFinding;
+import ai.abstraction.pathfinding.AStarPathFinding;
 import ai.abstraction.pathfinding.PathFinding;
 
 import ai.core.AI;
@@ -37,11 +38,12 @@ public class LobsterBot extends AbstractionLayerAI {
 	UnitType baseType;
 	UnitType barracksType;
 	
+	static int workerLimit = 7;
 	static int resourceWorkerAmount = 1;
 	boolean builtBarracks = false;
 	 
     public LobsterBot(UnitTypeTable a_utt) {
-    	this(a_utt, new GreedyPathFinding());
+    	this(a_utt, new AStarPathFinding());
     }
     
 
@@ -87,14 +89,7 @@ public class LobsterBot extends AbstractionLayerAI {
         	if (resourceAmount >= 4) {
         		resourceWorkerAmount = 2;
         	}
-    		// Bases
-        	for(Unit unit : pgs.getUnits()) {
-                if (unit.getType()==baseType && 
-                    unit.getPlayer() == player && 
-                    gs.getActionAssignment(unit)==null) {
-                    baseBehaviour(unit,p,pgs);
-                }
-        	}
+    		
         	
         	// barracks
             for (Unit unit : pgs.getUnits()) {
@@ -122,6 +117,17 @@ public class LobsterBot extends AbstractionLayerAI {
                 }        
             }
             
+            
+         // Bases
+            if (workers.size() < workerLimit) {
+		    	for(Unit unit : pgs.getUnits()) {
+		            if (unit.getType()==baseType && 
+		                unit.getPlayer() == player && 
+		                gs.getActionAssignment(unit)==null) {
+		                baseBehaviour(unit,p,pgs);
+		            }
+		    	}
+            }
             workersBehaviour(workers,p,gs);
             
             return translateActions(player,gs);
@@ -171,9 +177,22 @@ public class LobsterBot extends AbstractionLayerAI {
 
     
 	public void meleeUnitBehaviour(Unit unit, Player p, GameState gs) {
-    	Unit enemy = findEnemyUnit(p,gs);
-		if (enemy != null)
-			attack(unit, enemy);
+		  PhysicalGameState pgs = gs.getPhysicalGameState();
+	        Unit closestEnemy = null;
+	        int closestDistance = 0;
+	        for(Unit unit2:pgs.getUnits()) {
+	            if (unit2.getPlayer()>=0 && unit2.getPlayer()!=p.getID()) { 
+	                int d = Math.abs(unit2.getX() - unit.getX()) + Math.abs(unit2.getY() - unit.getY());
+	                if (closestEnemy==null || d<closestDistance) {
+	                    closestEnemy = unit2;
+	                    closestDistance = d;
+
+	                }
+	            }
+	        }
+	        if (closestEnemy!=null) {
+	            attack(unit,closestEnemy);
+	        }
 	}
     
 
