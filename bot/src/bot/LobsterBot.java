@@ -37,7 +37,7 @@ public class LobsterBot extends AbstractionLayerAI {
 	UnitType baseType;
 	UnitType barracksType;
 	
-	static int resourceWorkerAmount = 2;
+	static int resourceWorkerAmount = 1;
 	boolean builtBarracks = false;
 	 
     public LobsterBot(UnitTypeTable a_utt) {
@@ -71,9 +71,22 @@ public class LobsterBot extends AbstractionLayerAI {
     
     @Override
     public PlayerAction getAction(int player, GameState gs) {
+    	
     		PhysicalGameState pgs = gs.getPhysicalGameState();
         	Player p = gs.getPlayer(player);
+        	int resourceAmount = 0;
         	
+        	// Checks how many resources are on map
+        	for(Unit unit : pgs.getUnits()) {
+        		 if (unit.getType().isResource) {
+                    resourceAmount += 1;
+                }
+        	}
+        	//System.out.println(resourceAmount);
+        	
+        	if (resourceAmount >= 4) {
+        		resourceWorkerAmount = 2;
+        	}
     		// Bases
         	for(Unit unit : pgs.getUnits()) {
                 if (unit.getType()==baseType && 
@@ -84,11 +97,11 @@ public class LobsterBot extends AbstractionLayerAI {
         	}
         	
         	// barracks
-            for (Unit u : pgs.getUnits()) {
-                if (u.getType() == barracksType
-                        && u.getPlayer() == player
-                        && gs.getActionAssignment(u) == null) {
-                    barracksBehaviour(u, p, pgs);
+            for (Unit unit : pgs.getUnits()) {
+                if (unit.getType() == barracksType
+                        && unit.getPlayer() == player
+                        && gs.getActionAssignment(unit) == null) {
+                    barracksBehaviour(unit, p, pgs);
                 }
             }
         	
@@ -102,10 +115,10 @@ public class LobsterBot extends AbstractionLayerAI {
         	}
             
             List<Unit> workers = new LinkedList<Unit>();
-            for(Unit u:pgs.getUnits()) {
-                if (u.getType().canHarvest && 
-                    u.getPlayer() == player) {
-                    workers.add(u);
+            for(Unit unit:pgs.getUnits()) {
+                if (unit.getType().canHarvest && 
+                	unit.getPlayer() == player) {
+                    workers.add(unit);
                 }        
             }
             
