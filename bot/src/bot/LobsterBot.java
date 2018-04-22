@@ -139,6 +139,7 @@ public class LobsterBot extends AbstractionLayerAI {
     	 
     	 freeWorkers.addAll(workers);
     	 
+    	 if (workers.isEmpty()) return;
     	 
     	 for (int x = 0; x <resourceWorkerAmount; x++) {
 	    	 if (resourceWorkers.size() < resourceWorkerAmount) 	    	 {
