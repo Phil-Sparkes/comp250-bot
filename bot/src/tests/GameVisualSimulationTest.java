@@ -42,7 +42,7 @@ public class GameVisualSimulationTest {
         
         //AI ai1 = new WorkerRush(utt, new BFSPathFinding());
         AI ai1 = new ShallowMind(utt);
-        AI ai2 = new CRush_V2(utt);
+        AI ai2 = new NaiveMCTS(utt);
         //AI ai2 = new RandomAI();
 
         JFrame w = PhysicalGameStatePanel.newVisualizer(gs,640,640,false,PhysicalGameStatePanel.COLORSCHEME_BLACK);
