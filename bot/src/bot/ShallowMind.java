@@ -106,7 +106,7 @@ public class ShallowMind extends AbstractionLayerAI {
                 }
     		}
     		workerLimit = enemyWorkers + 1;
-    		if (workerLimit >= 6) workerLimit = 6;
+    		if (workerLimit >= 7) workerLimit = 7;
     		   
         	// barracks
             for (Unit unit : pgs.getUnits()) {
