@@ -14,6 +14,7 @@ import ai.abstraction.HeavyRush;
 import ai.abstraction.LightRush;
 
 import ai.abstraction.cRush.CRush_V2;
+import ai.abstraction.cRush.CRush_V1;
 import ai.portfolio.PortfolioAI;
 import ai.abstraction.pathfinding.BFSPathFinding;
 import ai.mcts.naivemcts.NaiveMCTS;
@@ -44,7 +45,7 @@ public class GameVisualSimulationTest {
         
         //AI ai1 = new WorkerRush(utt, new BFSPathFinding());
         AI ai1 = new ShallowMind(utt);
-        AI ai2 = new WorkerRush(utt);
+        AI ai2 = new CRush_V1(utt);
         //AI ai2 = new RandomAI();
 
         JFrame w = PhysicalGameStatePanel.newVisualizer(gs,640,640,false,PhysicalGameStatePanel.COLORSCHEME_BLACK);

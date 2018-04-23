@@ -40,7 +40,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	UnitType baseType;
 	UnitType barracksType;
 	
-	static int workerLimit = 6;
+	static int workerLimit = 7;
 	static int fightingUnitsBeforeAttack = 4;
 	static int resourceWorkerAmount = 0;
 	static int attackDistance = 3;
@@ -91,9 +91,9 @@ public class ShallowMind extends AbstractionLayerAI {
         	int resourceAmount = 0;
         	int fightingUnits = 0;
         	int enemyWorkers = 0;
+        	int currentWorkersAllowed = 0;
         	
         	// Checks how many resources are on map
-
             resourceAmount = checkNearResources(p, pgs);
             resourceWorkerAmount = resourceAmount;
 
@@ -105,8 +105,8 @@ public class ShallowMind extends AbstractionLayerAI {
                 	enemyWorkers ++;
                 }
     		}
-    		workerLimit = enemyWorkers + 1;
-    		if (workerLimit >= 7) workerLimit = 7;
+    		currentWorkersAllowed = enemyWorkers + 1;
+    		if (currentWorkersAllowed >= workerLimit) currentWorkersAllowed = workerLimit;
     		   
         	// barracks
             for (Unit unit : pgs.getUnits()) {
@@ -117,11 +117,11 @@ public class ShallowMind extends AbstractionLayerAI {
                     builtBarracks = true;
                 }
             }
-            // Ranged units
+            // fighting units
            for(Unit unit : pgs.getUnits()) {
-        	   if (unit.getType()==rangedType && 
+        	   if ((unit.getType()==rangedType || unit.getType()==heavyType) && 
 		                unit.getPlayer() == player) {
-        	   			fightingUnits += 1;
+        	   			fightingUnits ++;
         	   }
            }
            
@@ -145,7 +145,7 @@ public class ShallowMind extends AbstractionLayerAI {
             }
             
          // Bases
-            if (workers.size() < workerLimit) {
+            if (workers.size() < currentWorkersAllowed) {
 		    	for(Unit unit : pgs.getUnits()) {
 		            if (unit.getType()==baseType && 
 		                unit.getPlayer() == player && 
