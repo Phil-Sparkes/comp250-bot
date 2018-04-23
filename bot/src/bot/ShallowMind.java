@@ -28,7 +28,7 @@ import rts.units.*;
  *
  * @author santi
  */
-public class LobsterBot extends AbstractionLayerAI {    
+public class ShallowMind extends AbstractionLayerAI {    
 	
 	protected UnitTypeTable utt;
 	
@@ -42,12 +42,12 @@ public class LobsterBot extends AbstractionLayerAI {
 	static int resourceWorkerAmount = 1;
 	boolean builtBarracks = false;
 	 
-    public LobsterBot(UnitTypeTable a_utt) {
-    	this(a_utt, new AStarPathFinding());
+    public ShallowMind(UnitTypeTable a_utt) {
+    	this(a_utt, new GreedyPathFinding());
     }
     
 
-    public LobsterBot(UnitTypeTable a_utt, PathFinding a_pf) {
+    public ShallowMind(UnitTypeTable a_utt, PathFinding a_pf) {
     	super(a_pf);
         reset(a_utt);
     }
@@ -67,7 +67,7 @@ public class LobsterBot extends AbstractionLayerAI {
     
     @Override
     public AI clone() {
-        return new LobsterBot(utt, pf);
+        return new ShallowMind(utt, pf);
     }
    
     
@@ -89,7 +89,9 @@ public class LobsterBot extends AbstractionLayerAI {
         	if (resourceAmount >= 4) {
         		resourceWorkerAmount = 2;
         	}
-    		
+    		if (resourceAmount <= 1) {
+    			resourceWorkerAmount = 0;
+    		}
         	
         	// barracks
             for (Unit unit : pgs.getUnits()) {
@@ -206,14 +208,6 @@ public class LobsterBot extends AbstractionLayerAI {
         }
     }
 
-	private Unit findEnemyUnit(Player p, GameState gs) {
-    	for (Unit unit : gs.getUnits()) {
-    		if (unit.getPlayer()>=0  &&  unit.getPlayer()!=p.getID()) {
-    			return unit;
-    		}
-    	}
-		return null;
-	}
 	
 	public void workerHarvest (Unit unit, Player p, PhysicalGameState pgs) 	{
 		Unit closestBase = null;
