@@ -99,6 +99,7 @@ public class ShallowMind extends AbstractionLayerAI {
                         && unit.getPlayer() == player
                         && gs.getActionAssignment(unit) == null) {
                     barracksBehaviour(unit, p, pgs);
+                    builtBarracks = true;
                 }
             }
         	
@@ -159,7 +160,6 @@ public class ShallowMind extends AbstractionLayerAI {
     	 // assigns build worker
     	 if (p.getResources() >= baseType.cost && builtBarracks == false) {
     		 if (resourceWorkers.size()>1) buildWorker = (resourceWorkers.remove(1));
-    		 	builtBarracks = true;
     		 	resourceWorkerAmount = resourceWorkerAmount - 1;
     		 	buildIfNotAlreadyBuilding(buildWorker, barracksType, buildWorker.getX(), buildWorker.getY(), reservedPositions, p, pgs);
     		 	System.out.println("building");
