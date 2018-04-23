@@ -132,7 +132,7 @@ public class ShallowMind extends AbstractionLayerAI {
         	   if ((unit.getType()==rangedType || unit.getType()==heavyType) && 
 		                unit.getPlayer() == player && 
 		                gs.getActionAssignment(unit)==null) {
-        		   		meleeUnitBehaviour(unit,p,gs);
+        		   		fightingUnitBehaviour(unit,p,gs);
         	   }
            }
            
@@ -192,23 +192,29 @@ public class ShallowMind extends AbstractionLayerAI {
     	
     	 // Tells free workers to attack
     	 for (Unit unit:freeWorkers) {
-    		 meleeUnitBehaviour(unit, p, gs);
+    		 fightingUnitBehaviour(unit, p, gs);
     	 }
 	}
 
-	public void meleeUnitBehaviour(Unit unit, Player p, GameState gs) {
+	public void fightingUnitBehaviour(Unit unit, Player p, GameState gs) {
 		  PhysicalGameState pgs = gs.getPhysicalGameState();
 	        Unit closestEnemy = null;
 	        int closestDistance = 0;
-	        for(Unit unit2:pgs.getUnits()) {
-	            if (unit2.getPlayer()>=0 && unit2.getPlayer()!=p.getID()) { 
-	                int d = Math.abs(unit2.getX() - unit.getX()) + Math.abs(unit2.getY() - unit.getY());
+	        for(Unit enemyUnit:pgs.getUnits()) {
+	            if (enemyUnit.getPlayer()>=0 && enemyUnit.getPlayer()!=p.getID() && enemyUnit.getType() != baseType) { 
+	                int d = Math.abs(enemyUnit.getX() - unit.getX()) + Math.abs(enemyUnit.getY() - unit.getY());
 	                if (closestEnemy==null || d<closestDistance) {
-	                    closestEnemy = unit2;
+	                    closestEnemy = enemyUnit;
 	                    closestDistance = d;
-
 	                }
 	            }
+	        }
+	        if (closestEnemy==null) {
+	        	 for(Unit enemyBase:pgs.getUnits()) {
+	 	            if (enemyBase.getPlayer()>=0 && enemyBase.getPlayer()!=p.getID() && enemyBase.getType() == baseType) {
+	 	            	closestEnemy = enemyBase;
+	 	            }
+	        }
 	        }
 	        // attack enemy when close
 	        if (closestDistance <= attackDistance || resourceWorkerAmount == 0 || readyForAttack) {
