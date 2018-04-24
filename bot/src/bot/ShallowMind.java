@@ -184,7 +184,7 @@ public class ShallowMind extends AbstractionLayerAI {
     	 for(Unit unit:resourceWorkers) {
         	 // assigns build worker
     		 if (p.getResources() >= resourcesBeforeBarracks && builtBarracks == false) {
-    		 	buildIfNotAlreadyBuilding(unit, barracksType, unit.getX() + 1, 0, reservedPositions, p, pgs);
+    		 	buildIfNotAlreadyBuilding(unit, barracksType, unit.getX(), unit.getY(), reservedPositions, p, pgs);
         	 }
     		 else {
         		 workerHarvest(unit, p, pgs);
