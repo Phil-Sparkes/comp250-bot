@@ -42,10 +42,11 @@ public class ShallowMind extends AbstractionLayerAI {
 	
 	static int workerLimit = 7;
 	static int fightingUnitsBeforeAttack = 4;
-	static int resourceWorkerAmount = 0;
-	static int attackDistance = 3;
+	static int resourceWorkerAmount = 2;
+	static int attackDistance = 4;
 	static int distanceFromBase = 2;
 	static int resourceCheckDistance = 6;
+	static int resourcesBeforeBarracks = 7;
 	
 	boolean readyForAttack = false;
 	boolean builtBarracks = false;
@@ -94,10 +95,11 @@ public class ShallowMind extends AbstractionLayerAI {
         	int currentWorkersAllowed = 0;
         	
         	// Checks how many resources are on map
-            resourceAmount = checkNearResources(p, pgs);
-            resourceWorkerAmount = resourceAmount;
+        	 resourceAmount = checkNearResources(p, pgs);
+             resourceWorkerAmount = resourceAmount;
 
-            if (resourceWorkerAmount > 2) resourceWorkerAmount = 2;
+             if (resourceWorkerAmount > 2) resourceWorkerAmount = 2;
+
         	
             // check enemy workers
     		for(Unit unit:pgs.getUnits()) {
@@ -105,7 +107,7 @@ public class ShallowMind extends AbstractionLayerAI {
                 	enemyWorkers ++;
                 }
     		}
-    		currentWorkersAllowed = enemyWorkers + 1;
+    		currentWorkersAllowed = enemyWorkers + 2;
     		if (currentWorkersAllowed >= workerLimit) currentWorkersAllowed = workerLimit;
     		   
         	// barracks
@@ -181,8 +183,8 @@ public class ShallowMind extends AbstractionLayerAI {
     	 // assigns resource workers
     	 for(Unit unit:resourceWorkers) {
         	 // assigns build worker
-    		 if (p.getResources() >= barracksType.cost + 2 && builtBarracks == false) {
-    		 	buildIfNotAlreadyBuilding(unit, barracksType, unit.getX(), unit.getY(), reservedPositions, p, pgs);
+    		 if (p.getResources() >= resourcesBeforeBarracks && builtBarracks == false) {
+    		 	buildIfNotAlreadyBuilding(unit, barracksType, unit.getX() + 1, 0, reservedPositions, p, pgs);
         	 }
     		 else {
         		 workerHarvest(unit, p, pgs);
@@ -250,9 +252,7 @@ public class ShallowMind extends AbstractionLayerAI {
     
 	public void baseBehaviour(Unit u, Player p, PhysicalGameState pgs) {
 
-		if (builtBarracks == false) {
-    	if (p.getResources()>=workerType.cost) train(u, workerType);
-		}
+    if (p.getResources()>=workerType.cost) train(u, workerType);
 	}
 	
 	public void barracksBehaviour(Unit u, Player p, PhysicalGameState pgs) {
