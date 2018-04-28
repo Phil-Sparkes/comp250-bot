@@ -7,7 +7,7 @@ package bot;
 import ai.abstraction.AbstractAction;
 import ai.abstraction.AbstractionLayerAI;
 import ai.abstraction.Harvest;
-import ai.abstraction.pathfinding.GreedyPathFinding;
+//import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.abstraction.pathfinding.AStarPathFinding;
 import ai.abstraction.pathfinding.PathFinding;
 
@@ -55,6 +55,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	boolean readyForAttack = false;
 	boolean builtBarracks = false;
 	boolean troopTrainTypeToggle = true;
+	boolean rush = false;
 	
 	Random r = new Random();
 	
@@ -94,10 +95,17 @@ public class ShallowMind extends AbstractionLayerAI {
     		PhysicalGameState pgs = gs.getPhysicalGameState();
         	Player p = gs.getPlayer(player);
         	mapSize = pgs.getWidth();
+        	
         	int resourceAmount = 0;
         	int fightingUnits = 0;
         	int enemyWorkers = 0;
-        	int currentWorkersAllowed = 0;
+        	int currentWorkersAllowed = workerLimit;
+        	
+        	//decides if should rush
+        	if (mapSize == 8 || mapSize == 10) rush = true;
+        	if (rush) readyForAttack = true;
+        	
+        	
         	
         	// Checks how many resources are on map
         	 resourceAmount = checkNearResources(p, pgs);        
@@ -110,7 +118,7 @@ public class ShallowMind extends AbstractionLayerAI {
                 	enemyWorkers ++;
                 }
     		}
-    		currentWorkersAllowed = enemyWorkers + 1;
+    		if (!rush) currentWorkersAllowed = enemyWorkers + 1;
     		if (currentWorkersAllowed >= workerLimit) currentWorkersAllowed = workerLimit;
     		
     	      // check how many fighting units
@@ -123,7 +131,7 @@ public class ShallowMind extends AbstractionLayerAI {
             
             
             if (fightingUnits >= fightingUnitsBeforeAttack) readyForAttack = true;
-            if (fightingUnits <= 1) readyForAttack = false;
+            if (fightingUnits <= 1 && !rush) readyForAttack = false;
             if (fightingUnits == 3) troopTrainTypeToggle = false;
             else troopTrainTypeToggle = true;
 
@@ -140,7 +148,7 @@ public class ShallowMind extends AbstractionLayerAI {
         	   }
            }
            
-       	   // barracks
+       	    // barracks
            for (Unit unit : pgs.getUnits()) {
                if (unit.getType() == barracksType
                        && unit.getPlayer() == player
@@ -214,19 +222,20 @@ public class ShallowMind extends AbstractionLayerAI {
 	    	 }
     	 }
     	 // assigns resource workers
+    	 int index = 0;
     	 for(Unit unit:resourceWorkers) {
+    		 index ++;
         	 // assigns build worker
-    		 if (p.getResources() >= resourcesBeforeBarracks && builtBarracks == false) {
+    		 if (p.getResources() >= resourcesBeforeBarracks && builtBarracks == false && index == 1) {
      			int YPos = 0;
      			int XPos = 0;
      			
-    			if (p.getID() == 0) YPos += 3;
+    			if (p.getID() == 0) YPos += 2;
     			else {
-    				YPos = mapSize - 2;
+    				YPos = mapSize - 3;
     				XPos = mapSize - 1;
     			}
-    			//System.out.println(XPos + " " + YPos);
-    		 	buildIfNotAlreadyBuilding(unit, barracksType, XPos, YPos, reservedPositions, p, pgs);
+    			buildIfNotAlreadyBuilding(unit, barracksType, XPos, YPos, reservedPositions, p, pgs);
         	 }
     		 else {
         		 workerHarvest(unit, p, pgs);
@@ -261,7 +270,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	        }
 	        }
 	        // attack enemy when close
-	        if (closestDistance <= attackDistance || resourceWorkerAmount == 0 || readyForAttack) {
+	        if (closestDistance <= attackDistance || readyForAttack) {
 		        if (closestEnemy!=null) {
 		            attack(unit,closestEnemy);
 	        }
