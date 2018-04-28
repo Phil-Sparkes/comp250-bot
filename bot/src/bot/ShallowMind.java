@@ -232,7 +232,7 @@ public class ShallowMind extends AbstractionLayerAI {
      			int YPos = 0;
      			int XPos = 0;
      			
-    			if (p.getID() == 0) YPos += 2;
+    			if (p.getID() == 0) YPos += 3;
     			else {
     				YPos = mapSize - 3;
     				XPos = mapSize - 1;
