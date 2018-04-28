@@ -48,6 +48,9 @@ public class ShallowMind extends AbstractionLayerAI {
 	static int resourceCheckDistance = 6;
 	static int resourcesBeforeBarracks = 7;
 	
+	List<Integer> oldWorkerLocationX = new ArrayList<Integer>();
+	List<Integer> oldWorkerLocationY = new ArrayList<Integer>();
+	
 	boolean readyForAttack = false;
 	boolean builtBarracks = false;
 	boolean troopTrainTypeToggle = true;
@@ -55,7 +58,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	Random r = new Random();
 	
     public ShallowMind(UnitTypeTable a_utt) {
-    	this(a_utt, new GreedyPathFinding());
+    	this(a_utt, new AStarPathFinding());
     }
     
 
@@ -156,6 +159,27 @@ public class ShallowMind extends AbstractionLayerAI {
 		            }
 		    	}
             }
+            
+            // Check for worker movement
+           
+            	int index = 0;
+	            for (Unit worker : workers) {
+	            	 if (oldWorkerLocationX.size() == index) {
+	            		 oldWorkerLocationX.add(-1);
+	            		 oldWorkerLocationY.add(-1);
+	            	 }
+	            	 
+	            	 
+	            	 if (worker.getX() == oldWorkerLocationX.get(index) && worker.getY() == oldWorkerLocationY.get(index))
+	            	 {
+	            		 moveRandomDirection(worker, p, pgs);
+	            	 }
+	         	 	oldWorkerLocationX.set(index, worker.getX());
+	        	 	oldWorkerLocationY.set(index, worker.getY());
+	        	 	index ++;
+	            }
+
+            
             workersBehaviour(workers,p,gs);
             return translateActions(player,gs);
         }
@@ -225,6 +249,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	        }
 	        }
 	        else {
+	        	
 	        	// Moves away from base
 	        	int xSpot = 0;
 	        	int ySpot = 0;
@@ -235,21 +260,52 @@ public class ShallowMind extends AbstractionLayerAI {
 	        			if ((closestEnemy.getY() - unit.getY()) != 0) ySpot = baseUnit.getY() + distanceFromBase * ((closestEnemy.getY() - unit.getY()) / Math.abs(closestEnemy.getY() - unit.getY()));			
 	        		}
 	        	}
-	        	
 	        	// Random movement so they don't get stuck
 	        		
 	        	if (r.nextBoolean()) {
-	        		if (r.nextBoolean()) xSpot += 1;
-	        		else xSpot -= 1;
-	        	}
+	        		if (r.nextBoolean()) { 
+	        			xSpot += 1;
+	        			if (r.nextBoolean()) xSpot += 1; 
+	        			}
+	        		else {
+	        			xSpot -= 1;
+	        			if (r.nextBoolean()) xSpot -= 1; 
+	        			}
+	        		}
 	        	if (r.nextBoolean()) {
-	        		if (r.nextBoolean()) ySpot += 1;
-	        		else ySpot -= 1;
+	        		if (r.nextBoolean()) {
+	        			ySpot += 1;
+	        			if (r.nextBoolean()) ySpot += 1;
+	        		}
+	        		else {
+	        			ySpot -= 1;
+	        			if (r.nextBoolean()) ySpot += 1;
+	        		}
 	        	}
+	        	
 	        	move(unit,xSpot, ySpot);
 	        }
 	}
     
+	public void moveRandomDirection(Unit unit, Player p, PhysicalGameState pgs) {
+		
+    	int xSpot = 0;
+    	int ySpot = 0;
+    	
+		xSpot = unit.getX();
+		ySpot = unit.getY();
+		
+		if (r.nextBoolean()) {
+    		if (r.nextBoolean()) xSpot += 2;
+    		else xSpot -= 2;
+    	}
+		else {
+    		if (r.nextBoolean()) ySpot += 2;
+    		else ySpot -= 2;
+    	}
+		move(unit,xSpot, ySpot);
+	}
+	
 	public void baseBehaviour(Unit u, Player p, PhysicalGameState pgs) {
 
     if (p.getResources()>=workerType.cost) train(u, workerType);
