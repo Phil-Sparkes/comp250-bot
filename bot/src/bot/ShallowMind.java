@@ -7,7 +7,7 @@ package bot;
 import ai.abstraction.AbstractAction;
 import ai.abstraction.AbstractionLayerAI;
 import ai.abstraction.Harvest;
-//import ai.abstraction.pathfinding.GreedyPathFinding;
+import ai.abstraction.pathfinding.GreedyPathFinding;
 import ai.abstraction.pathfinding.AStarPathFinding;
 import ai.abstraction.pathfinding.PathFinding;
 
@@ -109,8 +109,11 @@ public class ShallowMind extends AbstractionLayerAI {
         	
         	// Checks how many resources are on map
         	 resourceAmount = checkNearResources(p, pgs);        
-             if (resourceAmount != 0) resourceWorkerAmount = 2;
-
+             if (resourceAmount != 0) {
+            	 if (rush) resourceWorkerAmount = 1;
+            	 else resourceWorkerAmount = 2;
+             }
+             else resourceWorkerAmount = 0;
         	
             // check enemy workers
     		for(Unit unit:pgs.getUnits()) {
@@ -213,7 +216,6 @@ public class ShallowMind extends AbstractionLayerAI {
     	 freeWorkers.addAll(workers);
     	 
     	 if (workers.isEmpty()) return;
-    	 
     	 
     	 for (int x = 0; x <resourceWorkerAmount; x++) {
 	    	 if (resourceWorkers.size() < resourceWorkerAmount) 	    	 {
