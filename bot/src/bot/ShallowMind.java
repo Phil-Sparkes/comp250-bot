@@ -107,24 +107,30 @@ public class ShallowMind extends AbstractionLayerAI {
         	
         	
         	
-        	// Checks how many resources are on map
-        	 resourceAmount = checkNearResources(p, pgs);        
+        	// Checks how many close resources are on map
+        	 resourceAmount = checkNearResources(p, pgs);  
+        	 
+        	 // Sets how many resource workers depending on how many resources
              if (resourceAmount != 0) {
             	 if (rush) resourceWorkerAmount = 1;
             	 else resourceWorkerAmount = 2;
              }
              else resourceWorkerAmount = 0;
         	
-            // check enemy workers
+             
+            // check how many enemy workers
     		for(Unit unit:pgs.getUnits()) {
                 if  (unit.getType().canHarvest && unit.getPlayer()>=0 && unit.getPlayer()!=p.getID()) { 
                 	enemyWorkers ++;
                 }
     		}
+    		
+    		// make one more worker than enemy
     		if (!rush) currentWorkersAllowed = enemyWorkers + 1;
     		if (currentWorkersAllowed >= workerLimit) currentWorkersAllowed = workerLimit;
     		
-    	      // check how many fighting units
+    		
+    	      // check how many fighting units player has
             for(Unit unit : pgs.getUnits()) {
          	   if ((unit.getType()==rangedType || unit.getType()==heavyType) && 
  		                unit.getPlayer() == player) {
@@ -132,17 +138,14 @@ public class ShallowMind extends AbstractionLayerAI {
          	   }
             }
             
-            
+            // attack and troop train toggle depending on how many fighting units
             if (fightingUnits >= fightingUnitsBeforeAttack) readyForAttack = true;
             if (fightingUnits <= 1 && !rush) readyForAttack = false;
             if (fightingUnits == 3) troopTrainTypeToggle = false;
             else troopTrainTypeToggle = true;
 
-            
-           
-      
 
-           // fighting units
+           // fighting units action
            for(Unit unit : pgs.getUnits()) {
         	   if ((unit.getType()==rangedType || unit.getType()==heavyType) && 
 		                unit.getPlayer() == player && 
@@ -151,7 +154,7 @@ public class ShallowMind extends AbstractionLayerAI {
         	   }
            }
            
-       	    // barracks
+       	    // barracks action
            for (Unit unit : pgs.getUnits()) {
                if (unit.getType() == barracksType
                        && unit.getPlayer() == player
@@ -161,6 +164,7 @@ public class ShallowMind extends AbstractionLayerAI {
                }
            }
            
+           // get list of workers
             List<Unit> workers = new LinkedList<Unit>();
             for(Unit unit:pgs.getUnits()) {
                 if (unit.getType().canHarvest && 
@@ -169,7 +173,7 @@ public class ShallowMind extends AbstractionLayerAI {
                 }        
             }
             
-         // Bases
+         // Bases action
             if (workers.size() < currentWorkersAllowed) {
 		    	for(Unit unit : pgs.getUnits()) {
 		            if (unit.getType()==baseType && 
@@ -181,7 +185,6 @@ public class ShallowMind extends AbstractionLayerAI {
             }
             
             // Check for worker movement
-           
             	int index = 0;
 	            for (Unit worker : workers) {
 	            	 if (oldWorkerLocationX.size() == index) {
@@ -189,7 +192,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	            		 oldWorkerLocationY.add(-1);
 	            	 }
 	            	 
-	            	 
+	            	 // add random movement if workers have not moved
 	            	 if (worker.getX() == oldWorkerLocationX.get(index) && worker.getY() == oldWorkerLocationY.get(index))
 	            	 {
 	            		 moveRandomDirection(worker, p, pgs);
@@ -199,7 +202,7 @@ public class ShallowMind extends AbstractionLayerAI {
 	        	 	index ++;
 	            }
 
-            
+            // worker actions
             workersBehaviour(workers,p,gs);
             return translateActions(player,gs);
         }
@@ -217,21 +220,23 @@ public class ShallowMind extends AbstractionLayerAI {
     	 
     	 if (workers.isEmpty()) return;
     	 
+    	 // takes from free workers and adds to resource workers
     	 for (int x = 0; x <resourceWorkerAmount; x++) {
 	    	 if (resourceWorkers.size() < resourceWorkerAmount) 	    	 {
 	    		 if (freeWorkers.size()>0) harvestWorker = (freeWorkers.remove(0));
 	    		 	resourceWorkers.add(harvestWorker);
 	    	 }
     	 }
-    	 // assigns resource workers
+    	 
+    	 // takes from resource workers and makes a build worker
     	 int index = 0;
     	 for(Unit unit:resourceWorkers) {
     		 index ++;
         	 // assigns build worker
     		 if (p.getResources() >= resourcesBeforeBarracks && builtBarracks == false && index == 1) {
-     			int YPos = 0;
+    			// gets build location
+    			int YPos = 0;
      			int XPos = 0;
-     			
     			if (p.getID() == 0) YPos += 3;
     			else {
     				YPos = mapSize - 3;
@@ -240,80 +245,85 @@ public class ShallowMind extends AbstractionLayerAI {
     			buildIfNotAlreadyBuilding(unit, barracksType, XPos, YPos, reservedPositions, p, pgs);
         	 }
     		 else {
+    			 // assigns harvest workers
         		 workerHarvest(unit, p, pgs);
     		 }
     	 }
     	 
-    	
-    	 // Tells free workers to attack
+    	 // Tells remaining free workers to act like fighting units
     	 for (Unit unit:freeWorkers) {
     		 fightingUnitBehaviour(unit, p, gs);
     	 }
 	}
 
 	public void fightingUnitBehaviour(Unit unit, Player p, GameState gs) {
-		  PhysicalGameState pgs = gs.getPhysicalGameState();
-	        Unit closestEnemy = null;
-	        int closestDistance = 0;
-	        for(Unit enemyUnit:pgs.getUnits()) {
-	            if (enemyUnit.getPlayer()>=0 && enemyUnit.getPlayer()!=p.getID() && enemyUnit.getType() != baseType) { 
-	                int d = Math.abs(enemyUnit.getX() - unit.getX()) + Math.abs(enemyUnit.getY() - unit.getY());
-	                if (closestEnemy==null || d<closestDistance) {
-	                    closestEnemy = enemyUnit;
-	                    closestDistance = d;
-	                }
-	            }
-	        }
-	        if (closestEnemy==null) {
-	        	 for(Unit enemyBase:pgs.getUnits()) {
-	 	            if (enemyBase.getPlayer()>=0 && enemyBase.getPlayer()!=p.getID() && enemyBase.getType() == baseType) {
-	 	            	closestEnemy = enemyBase;
-	 	            }
-	        }
-	        }
-	        // attack enemy when close
-	        if (closestDistance <= attackDistance || readyForAttack) {
-		        if (closestEnemy!=null) {
-		            attack(unit,closestEnemy);
-	        }
-	        }
-	        else {
-	        	
-	        	// Moves away from base
-	        	int xSpot = 0;
-	        	int ySpot = 0;
-	        	for (Unit baseUnit:pgs.getUnits()) {
-	        		if (baseUnit.getType()==baseType && 
-	        				baseUnit.getPlayer() == p.getID()) {
-	        			if ((closestEnemy.getX() - unit.getX()) != 0) xSpot = baseUnit.getX() + distanceFromBase * ((closestEnemy.getX() - unit.getX()) / Math.abs(closestEnemy.getX() - unit.getX()));
-	        			if ((closestEnemy.getY() - unit.getY()) != 0) ySpot = baseUnit.getY() + distanceFromBase * ((closestEnemy.getY() - unit.getY()) / Math.abs(closestEnemy.getY() - unit.getY()));			
-	        		}
-	        	}
-	        	// Random movement so they don't get stuck
-	        		
-	        	if (r.nextBoolean()) {
-	        		if (r.nextBoolean()) { 
-	        			xSpot += 1;
-	        			if (r.nextBoolean()) xSpot += 1; 
-	        			}
-	        		else {
-	        			xSpot -= 1;
-	        			if (r.nextBoolean()) xSpot -= 1; 
-	        			}
-	        		}
-	        	if (r.nextBoolean()) {
-	        		if (r.nextBoolean()) {
-	        			ySpot += 1;
-	        			if (r.nextBoolean()) ySpot += 1;
-	        		}
-	        		else {
-	        			ySpot -= 1;
-	        			if (r.nextBoolean()) ySpot += 1;
-	        		}
-	        	}
-	        	
-	        	move(unit,xSpot, ySpot);
-	        }
+		    
+	    PhysicalGameState pgs = gs.getPhysicalGameState();
+        Unit closestEnemy = null;
+        int closestDistance = 0;
+        
+        // get closest enemy unit that is not base
+        for(Unit enemyUnit:pgs.getUnits()) {
+            if (enemyUnit.getPlayer()>=0 && enemyUnit.getPlayer()!=p.getID() && enemyUnit.getType() != baseType) { 
+                int d = Math.abs(enemyUnit.getX() - unit.getX()) + Math.abs(enemyUnit.getY() - unit.getY());
+                if (closestEnemy==null || d<closestDistance) {
+                    closestEnemy = enemyUnit;
+                    closestDistance = d;
+                }
+            }
+        }
+        
+        // if none can move then get enemy base
+        if (closestEnemy==null) {
+        	 for(Unit enemyBase:pgs.getUnits()) {
+ 	            if (enemyBase.getPlayer()>=0 && enemyBase.getPlayer()!=p.getID() && enemyBase.getType() == baseType) {
+ 	            	closestEnemy = enemyBase;
+ 	            }
+        }
+        }
+        
+        // attack enemy when close or when ready for attack is true
+        if (closestDistance <= attackDistance || readyForAttack) {
+	        if (closestEnemy!=null) {
+	            attack(unit,closestEnemy);
+        }
+        }
+        else {
+        	// if not attacking move away from base
+        	int xSpot = 0;
+        	int ySpot = 0;
+        	for (Unit baseUnit:pgs.getUnits()) {
+        		if (baseUnit.getType()==baseType && 
+        				baseUnit.getPlayer() == p.getID()) {
+        			if ((closestEnemy.getX() - unit.getX()) != 0) xSpot = baseUnit.getX() + distanceFromBase * ((closestEnemy.getX() - unit.getX()) / Math.abs(closestEnemy.getX() - unit.getX()));
+        			if ((closestEnemy.getY() - unit.getY()) != 0) ySpot = baseUnit.getY() + distanceFromBase * ((closestEnemy.getY() - unit.getY()) / Math.abs(closestEnemy.getY() - unit.getY()));			
+        		}
+        	}
+        	// Add random movement so they don't get stuck
+        		
+        	if (r.nextBoolean()) {
+        		if (r.nextBoolean()) { 
+        			xSpot += 1;
+        			if (r.nextBoolean()) xSpot += 1; 
+        			}
+        		else {
+        			xSpot -= 1;
+        			if (r.nextBoolean()) xSpot -= 1; 
+        			}
+        		}
+        	if (r.nextBoolean()) {
+        		if (r.nextBoolean()) {
+        			ySpot += 1;
+        			if (r.nextBoolean()) ySpot += 1;
+        		}
+        		else {
+        			ySpot -= 1;
+        			if (r.nextBoolean()) ySpot += 1;
+        		}
+        	}
+        	
+        	move(unit,xSpot, ySpot);
+        }
 	}
     
 	public void moveRandomDirection(Unit unit, Player p, PhysicalGameState pgs) {
@@ -336,22 +346,20 @@ public class ShallowMind extends AbstractionLayerAI {
 	}
 	
 	public void baseBehaviour(Unit u, Player p, PhysicalGameState pgs) {
-
-    if (p.getResources()>=workerType.cost) train(u, workerType);
-	}
+		//Train worker
+	    if (p.getResources()>=workerType.cost) train(u, workerType);
+		}
 	
 	public void barracksBehaviour(Unit u, Player p, PhysicalGameState pgs) {
-		//System.out.println(u.getX() + " " + u.getY());
-        if (troopTrainTypeToggle) {
+        //train ranged or heavy units depending on troopTrainTypeToggle
+		if (troopTrainTypeToggle) {
 			if (p.getResources() >= rangedType.cost) {
 	            train(u, rangedType);
-	            //troopTrainTypeToggle = true;
 	        }
         }
         else {
         	if (p.getResources() >= heavyType.cost) {
                 train(u, heavyType);
-                //troopTrainTypeToggle = true;
         	}
         }
     }
@@ -360,6 +368,8 @@ public class ShallowMind extends AbstractionLayerAI {
 		Unit closestBase = null;
         Unit closestResource = null;
         int closestDistance = 0;
+        
+        // Find closest resource
         for(Unit u2:pgs.getUnits()) {
             if (u2.getType().isResource) { 
                 int d = Math.abs(u2.getX() - unit.getX()) + Math.abs(u2.getY() - unit.getY());
@@ -369,8 +379,12 @@ public class ShallowMind extends AbstractionLayerAI {
                 }
             }
         }
+        
+        // if no resources close then set resourceWorkerAmount to 0
         if (closestDistance > 4) resourceWorkerAmount = 0;
         closestDistance = 0;
+        
+        // find closest stockpile
         for(Unit u2:pgs.getUnits()) {
             if (u2.getType().isStockpile && u2.getPlayer()==p.getID()) { 
                 int d = Math.abs(u2.getX() - unit.getX()) + Math.abs(u2.getY() - unit.getY());
@@ -380,6 +394,8 @@ public class ShallowMind extends AbstractionLayerAI {
                 }
             }
         }
+        
+        // harvest resource
         if (closestResource!=null && closestBase!=null) {
             AbstractAction aa = getAbstractAction(unit);
             if (aa instanceof Harvest) {
